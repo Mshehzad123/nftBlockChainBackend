@@ -1,14 +1,19 @@
-import express from 'express'
+import express from 'express';
 import multer from 'multer';
-const upload = multer();
+import Controler from '../controler/createnft.controler.js';
 
-var router = express.Router();
-import CreateNfts from '../controler/createnft.controler.js';
+const router = express.Router();
 
-// User routes
-router.post('/', CreateNfts);
+// Use Multer middleware to handle multiple file uploads
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Define the fields for 'profile' and 'nft' files
+router.post('/', upload.fields([
+    { name: 'profile', maxCount: 1 },
+    { name: 'nft', maxCount: 1 }
+]), Controler.CreateNfts);
+
+// Route to get all created NFTs
+router.get('/', Controler.getCreatedNft);
 
 export default router;
- // Use memory storage to handle file as Buffer
-
-// Apply Multer middleware to the route

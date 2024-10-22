@@ -4,39 +4,38 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import createNftRoute from './routes/create.route.js';
-import signup from './routes/Signup.route.js'
-import signin from './routes/Signin.route.js'
-
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 dotenv.config();
 
-// Multer setup for file handling (memory storage)
-const storage = multer.memoryStorage(); // Files are stored in memory as Buffers
-const upload = multer({ storage: storage });
+// Serve the uploads directory as static files
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir); // Create the uploads directory if it doesn't exist
+}
+app.use('/uploads', express.static(uploadsDir));
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// MongoDB connection
 const PORT = process.env.PORT || 4000;
 const URI = process.env.MongoDBURI;
 
-// MongoDB connection
-try {
-  mongoose.connect(URI, {
+mongoose.connect(URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  });
-  console.log("Connected to MongoDB");
-} catch (error) {
-  console.log("Error: ", error);
-}
+})
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((error) => console.log("Error: ", error));
 
-// Use multer middleware for file uploads in the '/createnft' route
-app.use("/createnft", upload.single('file'), createNftRoute);  // 'file' is the field name for the uploaded file
-app.use("/signup", signup);  
-app.use("/signin", signin);  
+// Routes
+app.use("/createnft", createNftRoute);
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
+    console.log(`Server is listening on port ${PORT}`);
 });
